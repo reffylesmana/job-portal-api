@@ -1,13 +1,137 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  RECRUITER
+  JOB_SEEKER
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+}
+
+enum JobStatus {
+  OPEN
+  CLOSED
+}
+
+enum ApplicationStatus {
+  PENDING
+  REVIEWED
+  INTERVIEW
+  ACCEPTED
+  REJECTED
+}
+
+enum ExperienceLevel {
+  FRESHER
+  JUNIOR
+  MID
+  SENIOR
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(JOB_SEEKER)
+  photo     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  companies     Company[]
+  applications  Application[]
+  refreshTokens RefreshToken[]
+}
+
+model Company {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  logo        String?
+  website     String?
+  industry    String?
+  location    String?
+
+  ownerId String
+  owner   User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  jobs Job[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Job {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+
+  salaryMin Int?
+  salaryMax Int?
+
+  location String?
+
+  jobType JobType
+
+  status JobStatus @default(OPEN)
+
+  experience ExperienceLevel?
+
+  deadline DateTime?
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  applications Application[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Application {
+  id String @id @default(cuid())
+
+  cv          String
+  coverLetter String?
+
+  status ApplicationStatus @default(PENDING)
+
+  jobId String
+  job   Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  appliedAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([jobId, userId])
+}
+
+model RefreshToken {
+  id String @id @default(cuid())
+
+  token String @unique
+
+  expiresAt DateTime
+
+  userId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
