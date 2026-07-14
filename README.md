@@ -356,7 +356,7 @@ http://localhost:3000/api-docs
 
 > The image below shows the interactive Swagger UI used to document and test the API.
 
-![Swagger Preview](docs/swagger-preview.png)
+![Swagger Preview](src/docs/swagger-preview.png)
 
 Swagger provides:
 
